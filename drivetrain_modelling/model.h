@@ -3,6 +3,17 @@
 
 namespace model {
 
+struct DrivetrainStatus {
+  double left_velocity = 0;
+  double right_velocity = 1;
+  double left_angular_velocity = 2;
+  double right_angular_velocity = 3;
+  double position = 4;
+  double forwards_velocity = 5;
+  double angle = 6;
+  double angular_velocity = 7;
+}
+
 class DrivetrainModel {
  public:
   DrivetrainModel();
@@ -20,8 +31,7 @@ class DrivetrainModel {
   double get_angular_velocity();
 
  private:
-  double position_, left_velocity_, right_velocity_, left_angular_velocity_,
-      right_angular_velocity_, angle_, angular_velocity_;
+  DrivetrainStatus status_;
 };
 
 }  // namespace model
