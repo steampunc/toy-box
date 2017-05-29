@@ -44,9 +44,9 @@ time = 10
 model = dt_model.DrivetrainModel()
 controller = UnprofiledController(200, 0, 180, 10, 0, 15)
 goal = DrivetrainGoals()
-goal.position = 1.0
+goal.position = 0.75
 goal.velocity = 0.0
-goal.angle = 1.0
+goal.angle = -0.25
 goal.angular_velocity = 0.0
 
 controller.SetGoal(goal)
