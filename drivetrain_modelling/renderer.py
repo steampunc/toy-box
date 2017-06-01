@@ -11,14 +11,19 @@ class Drivetrain(object):
         self.point3 = (center[0] - (width / 2.0), center[1] + (height / 2.0))
         self.point4 = (center[0] + (width / 2.0), center[1] + (height / 2.0))
         self.angle = angle
+
+        self.point1 = self.RotatePoint(self.center, self.point1, angle)
+        self.point2 = self.RotatePoint(self.center, self.point2, angle)
+        self.point3 = self.RotatePoint(self.center, self.point3, angle)
+        self.point4 = self.RotatePoint(self.center, self.point4, angle)
         self.dt = 0.005
     
     def TranslateBox(self, velocity):
         c = math.cos(self.angle)
         s = math.sin(self.angle)
 
-        dx = velocity * s * self.dt * 300
-        dy = -velocity * c * self.dt * 300
+        dx = velocity * s * self.dt * 200
+        dy = -velocity * c * self.dt * 200
 
         self.center = (self.center[0] + dx, self.center[1] + dy)
         self.point1 = (self.point1[0] + dx, self.point1[1] + dy)
@@ -28,7 +33,6 @@ class Drivetrain(object):
 
     def Update(self, window, velocity, angular_velocity):
         self.angle += angular_velocity * self.dt
-        print(self.angle)
 
         self.TranslateBox(velocity)
 
@@ -54,7 +58,7 @@ class Drivetrain(object):
 
 window = pygame.display.set_mode((1024, 760))
 window.fill((255, 255, 255))
-drivetrain = Drivetrain((500, 300), 50, 90, 0)
+drivetrain = Drivetrain((500, 300), 90, 120, 0)
 
 with open("logs/model_status.csv", 'r') as logfile_reader:
     next(logfile_reader, None)
@@ -64,4 +68,4 @@ with open("logs/model_status.csv", 'r') as logfile_reader:
         window.fill((255, 255, 255))
         drivetrain.Update(window, row[7], row[9])
         pygame.display.flip()
-        time.sleep(0.005)
+        time.sleep(0.0001)
