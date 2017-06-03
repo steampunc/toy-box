@@ -13,23 +13,26 @@ class TrapController(object):
     akI = 0.0
     akD = 0.0
 
-    goal = DrivetrainGoals()
-    goal.unprofiled_position = 0.0
-    goal.unprofiled_velocity = 0.0
-    goal.unprofiled_angle = 0.0
-    goal.unprofiled_angular_velocity = 0.0
+    unprofiled_goal = DrivetrainGoals()
+    unprofiled_goal.position = 0.0
+    unprofiled_goal.v_s = 0.0
+    unprofiled_goal.v_e = 0.0
+    unprofiled_goal.angle = 0.0
+    unprofiled_goal.angular_velocity = 0.0
 
-    goal.profiled_position = 0.0
-    goal.profiled_velocity = 0.0
-    goal.profiled_angle = 0.0
-    goal.profiled_angular_velocity = 0.0
-
-    accel_time = 0.0
+    profiled_goal = DrivetrainGoals()
+    profiled_goal.position = 0.0
+    profiled_goal.velocity = 0.0
+    profiled_goal.angle = 0.0
+    profiled_goal.angular_velocity = 0.0
 
     max_accel = 0.0
     max_velocity = 0.0
 
-    def __init__(self, pkP, pkI, pkD, akP, akI, akD, max_accel, max_velocity):
+    left_voltage = 0
+    right_voltage = 0
+
+    def __init__(self, pkP, pkI, pkD, akP, akI, akD, max_accel, max_velocity, dt):
         self.pkP = pkP
         self.pkI = pkI
         self.pkD = pkD
@@ -39,43 +42,71 @@ class TrapController(object):
         self.akD = akD
 
         self.max_accel = max_accel
-        self.accel_time = max_velocity / max_accel
-
         self.max_velocity = max_velocity
 
+        self.dt = dt
+
+    def UpdateGoal(self, time):
+        if (time < self.t_accel):
+            self.profiled_goal.velocity += self.max_accel * self.dt
+        elif (self.t_cruise > 0 and time < self.t_accel + self.t_cruise):
+            self.profiled_goal.velocity = self.max_velocity
+        elif (time < self.t_accel + self.t_cruise + self.t_deccel or self.profiled_goal.velocity > self.unprofiled_goal.v_e):
+            self.profiled_goal.velocity -= self.max_accel * self.dt
+
+        self.profiled_goal.position += self.profiled_goal.velocity * self.dt
+
     def Update(self, status):
-        left_voltage = (self.goal.profiled_position - status.position) * self.pkP + (self.goal.profiled_velocity - status.velocity) * self.pkD + (self.goal.profiled_angle - status.angle) * self.akP + (self.goal.profiled_angular_velocity - status.angular_velocity) * self.akD
-        right_voltage = (self.goal.profiled_position - status.position) * self.pkP + (self.goal.profiled_velocity - status.velocity) * self.pkD - (self.goal.profiled_angle - status.angle) * self.akP - (self.goal.profiled_angular_velocity - status.angular_velocity) * self.akD
-        print(left_voltage, right_voltage, self.goal.position - status.position)
-        return left_voltage, right_voltage
+
+        self.UpdateGoal(self.time)
+
+        self.left_voltage = (self.profiled_goal.position - status.position) * self.pkP + (self.profiled_goal.velocity - status.velocity) * self.pkD
+        self.right_voltage = (self.profiled_goal.position - status.position) * self.pkP + (self.profiled_goal.velocity - status.velocity) * self.pkD
+
+        print(self.left_voltage, self.right_voltage, self.time)
+        self.time += self.dt
+        return self.left_voltage, self.right_voltage
 
     def SetGoal(self, goal):
-        self.goal.unprofiled_position = goal.unprofiled_position
-        self.goal.unprofiled_velocity = goal.unprofiled_velocity
-        self.goal.unprofiled_angle = goal.unprofiled_angle
-        self.goal.unprofiled_angular_velocity = goal.unprofiled_angular_velocity
+        self.unprofiled_goal.position = goal.position
+        self.unprofiled_goal.v_s = goal.v_s
+        self.unprofiled_goal.v_e = goal.v_e
+
+        self.profiled_goal.position = 0.0
+        self.profiled_goal.velocity = goal.v_s
 
         # Calculate constants
-        v_cruise = math.Min(max_velocity, v_cruise
+        self.v_c = min(self.max_velocity, math.sqrt(((2.0 * self.unprofiled_goal.position * self.max_accel) - (self.unprofiled_goal.v_s * self.unprofiled_goal.v_s + self.unprofiled_goal.v_e * self.unprofiled_goal.v_e)) / 2.0))
+
+        self.t_accel = (self.v_c - goal.v_s) / self.max_accel
+        self.t_deccel = (self.v_c - goal.v_e) / self.max_accel
+        self.t_cruise = (self.unprofiled_goal.position - ((self.v_c + self.unprofiled_goal.v_s) / 2 * self.t_accel + (self.v_c + self.unprofiled_goal.v_e) / 2 * self.t_deccel)) / self.v_c
+
+        self.time = 0
+
+    def log_status(self):
+        with open("logs/profiled_controller_status.csv", "a") as logfile:
+            logfile.write(str(self.left_voltage) + ", " + str(self.right_voltage) + ", " + str(self.unprofiled_goal.position) + ", " + str(self.unprofiled_goal.v_s) + ", " + str(self.v_c) + ", " + str(self.unprofiled_goal.v_e) + ", " + str(self.profiled_goal.position) + ", " + str(self.profiled_goal.velocity) + "\n")
 
 
-    def UpdateGoal(self, controller_time):
 
 
 time = 10
 
 model = dt_model.DrivetrainModel()
-controller = TrapController(0, 0, 0, 0, 0, 0, 1, 1)
+
+controller = TrapController(0, 0, 0, 0, 0, 0, 1.0, 1.0, dt_model.constants.dt)
+
 goal = DrivetrainGoals()
-goal.unprofiled_position = 0.75
-goal.unprofiled_velocity = 0.0
-goal.unprofiled_angle = -math.pi / 2
-goal.unprofiled_angular_velocity = 0.0
+
+goal.position = 4
+goal.v_s = 0
+goal.v_e = 0
 
 controller.SetGoal(goal)
 
-with open("logs/controller_status.csv", "a") as logfile:
-    logfile.write("Left Voltage, Right Voltage, Goal Position, Goal Velocity, Goal Angle, Goal Angular Velocity\n")
+with open("logs/profiled_controller_status.csv", "a") as logfile:
+    logfile.write("Left Voltage, Right Voltage, Unprofiled Goal Position, Unprofiled Goal Velocity Start, Unprofiled Goal Velocity Cruise, Unprofiled Goal Velocity End, Profiled Goal Position, Profiled Goal Velocity\n")
 
 for i in range(0, int(time / dt_model.constants.dt)):
     status = model.get_status()
@@ -84,6 +115,5 @@ for i in range(0, int(time / dt_model.constants.dt)):
     model.Update(left_voltage, right_voltage)
 
     model.log_status()
+    controller.log_status()
 
-    with open("logs/unprofiled_controller_status.csv", "a") as logfile:
-        logfile.write(str(left_voltage) + ", " + str(right_voltage) + ", " + str(goal.position) + ", " + str(goal.velocity) + ", " + str(goal.angle) + ", " + str(goal.angular_velocity) + "\n")
