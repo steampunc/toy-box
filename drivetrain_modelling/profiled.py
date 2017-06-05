@@ -49,22 +49,24 @@ class TrapController(object):
     def UpdateGoal(self, time):
         if (time < self.t_accel):
             self.profiled_goal.velocity += self.max_accel * self.dt
-        elif (self.t_cruise > 0 and time < self.t_accel + self.t_cruise):
+            print("Accelerating", time)
+        elif ((self.t_cruise > 0 and time < self.t_accel + self.t_cruise) and self.v_c >= self.max_velocity):
             self.profiled_goal.velocity = self.max_velocity
-        elif (time < self.t_accel + self.t_cruise + self.t_deccel or self.profiled_goal.velocity > self.unprofiled_goal.v_e):
+            print("Cruising", time)
+        elif (time <= self.t_accel + max(self.t_cruise, 0) + self.t_deccel):
             self.profiled_goal.velocity -= self.max_accel * self.dt
+            print("Decellerating", time)
 
         self.profiled_goal.position += self.profiled_goal.velocity * self.dt
 
     def Update(self, status):
 
+        self.time += self.dt
         self.UpdateGoal(self.time)
 
         self.left_voltage = (self.profiled_goal.position - status.position) * self.pkP + (self.profiled_goal.velocity - status.velocity) * self.pkD
         self.right_voltage = (self.profiled_goal.position - status.position) * self.pkP + (self.profiled_goal.velocity - status.velocity) * self.pkD
 
-        print(self.left_voltage, self.right_voltage, self.time)
-        self.time += self.dt
         return self.left_voltage, self.right_voltage
 
     def SetGoal(self, goal):
@@ -76,37 +78,38 @@ class TrapController(object):
         self.profiled_goal.velocity = goal.v_s
 
         # Calculate constants
-        self.v_c = min(self.max_velocity, math.sqrt(((2.0 * self.unprofiled_goal.position * self.max_accel) - (self.unprofiled_goal.v_s * self.unprofiled_goal.v_s + self.unprofiled_goal.v_e * self.unprofiled_goal.v_e)) / 2.0))
+        self.v_c = min(self.max_velocity, math.sqrt(((2.0 * self.unprofiled_goal.position * self.max_accel) + ((self.unprofiled_goal.v_s * self.unprofiled_goal.v_s) + (self.unprofiled_goal.v_e * self.unprofiled_goal.v_e))) / 2.0))
+        print(self.v_c)
 
         self.t_accel = (self.v_c - goal.v_s) / self.max_accel
         self.t_deccel = (self.v_c - goal.v_e) / self.max_accel
-        self.t_cruise = (self.unprofiled_goal.position - ((self.v_c + self.unprofiled_goal.v_s) / 2 * self.t_accel + (self.v_c + self.unprofiled_goal.v_e) / 2 * self.t_deccel)) / self.v_c
+        self.t_cruise = (self.unprofiled_goal.position - ((self.v_c + goal.v_s) / 2.0 * self.t_accel + (self.v_c + goal.v_e) / 2.0 * self.t_deccel)) / self.v_c
+
+        print(self.t_accel, self.t_deccel, self.t_cruise, self.unprofiled_goal.position, (self.v_c + goal.v_s) * self.t_accel / 2.0, (self.v_c + goal.v_e) * self.t_deccel / 2.0)
 
         self.time = 0
 
     def log_status(self):
         with open("logs/profiled_controller_status.csv", "a") as logfile:
-            logfile.write(str(self.left_voltage) + ", " + str(self.right_voltage) + ", " + str(self.unprofiled_goal.position) + ", " + str(self.unprofiled_goal.v_s) + ", " + str(self.v_c) + ", " + str(self.unprofiled_goal.v_e) + ", " + str(self.profiled_goal.position) + ", " + str(self.profiled_goal.velocity) + "\n")
-
-
+            logfile.write(str(self.left_voltage) + ", " + str(self.right_voltage) + ", " + str(self.unprofiled_goal.position) + ", " + str(self.unprofiled_goal.v_s) + ", " + str(self.v_c) + ", " + str(self.unprofiled_goal.v_e) + ", " + str(self.profiled_goal.position) + ", " + str(self.profiled_goal.velocity) + ", " + str(self.t_cruise) + ", " + str(self.t_accel) + ", " + str(self.t_deccel) + "\n")
 
 
 time = 10
 
 model = dt_model.DrivetrainModel()
 
-controller = TrapController(0, 0, 0, 0, 0, 0, 1.0, 1.0, dt_model.constants.dt)
+controller = TrapController(0, 10, 0, 0, 0, 0, 1.0, 1.0, dt_model.constants.dt)
 
 goal = DrivetrainGoals()
 
-goal.position = 4
-goal.v_s = 0
-goal.v_e = 0
+goal.position = .3
+goal.v_s = 0.0
+goal.v_e = 0.0
 
 controller.SetGoal(goal)
 
 with open("logs/profiled_controller_status.csv", "a") as logfile:
-    logfile.write("Left Voltage, Right Voltage, Unprofiled Goal Position, Unprofiled Goal Velocity Start, Unprofiled Goal Velocity Cruise, Unprofiled Goal Velocity End, Profiled Goal Position, Profiled Goal Velocity\n")
+    logfile.write("Left Voltage, Right Voltage, Unprofiled Goal Position, Unprofiled Goal Velocity Start, Unprofiled Goal Velocity Cruise, Unprofiled Goal Velocity End, Profiled Goal Position, Profiled Goal Velocity, Cruise Time, Accel Time, Deccel Time\n")
 
 for i in range(0, int(time / dt_model.constants.dt)):
     status = model.get_status()
