@@ -1,11 +1,34 @@
-#include <opencv2/opencv.hpp>
 #include <iostream>
+#include <fstream>
+#include <cmath>
 #include <limits>
 #include <memory>
-#include "eigen/Eigen/Dense"
+#include <cstdint>
+#include <vector>
 
-using namespace cv;
-using namespace Eigen;
+struct Vector3d {
+  double x, y, z;
+  Vector3d(double x, double y, double z) : x(x), y(y), z(z) {}
+  Vector3d operator+(const Vector3d& v) const {
+    return Vector3d(x + v.x, y + v.y, z + v.z);
+  }
+  void operator+=(const Vector3d& v) {
+    x += v.x;
+    y += v.y;
+    z += v.z;
+  }
+  Vector3d operator-(const Vector3d& v) const {
+    return Vector3d(x - v.x, y - v.y, z - v.z);
+  }
+  Vector3d operator*(double d) const { return Vector3d(x * d, y * d, z * d); }
+  Vector3d operator/(double d) const { return Vector3d(x / d, y / d, z / d); }
+  Vector3d normalized() const {
+    double mg = sqrt(x * x + y * y + z * z);
+    return Vector3d(x / mg, y / mg, z / mg);
+  }
+  double dot(Vector3d v) const { return x * v.x + y * v.y + z * v.z; }
+  double norm() const { return sqrt(x * x + y * y + z * z); }
+};
 
 class Ray {
  public:
@@ -20,17 +43,84 @@ class Ray {
 
 class Light {
  public:
-  Light(Vector3d position, Vec3b color) : position_(position), color_(color) {}
+  Light(Vector3d position, Vector3d color)
+      : position_(position), color_(color) {}
   Vector3d position_;
-  Vec3b color_;
+  Vector3d color_;
 };
 
 class Object {
  public:
   virtual bool CheckIntersection(Ray* ray) { return false; }
-  virtual Vec3b CalculateLight(Ray ray, std::vector<Light> lights) {
-    return Vec3b(0, 0, 0);
+  virtual Vector3d CalculateLight(
+      Ray ray, std::vector<Light> lights,
+      std::vector<std::shared_ptr<Object>> objects) {
+    return Vector3d(0, 0, 0);
   }
+};
+
+class Plane : public Object {
+ public:
+  Plane(Vector3d position, Vector3d normal_face, bool disk = false,
+        double radius = 0)
+      : position_(position),
+        normal_face_(normal_face.normalized()),
+        disk_(disk),
+        radius_(radius) {}
+
+  bool CheckIntersection(Ray* ray) override {
+    double dot_prod = (ray->direction_).dot(normal_face_);
+    if (dot_prod > 1e-6) {
+      Vector3d intersection_vector = position_ - ray->position_;
+      double t = intersection_vector.dot(normal_face_) / dot_prod;
+      if (ray->nearest_intersection > t && t >= 0) {
+        if (disk_) {
+          Vector3d intersection_point = ray->position_ + ray->direction_ * t;
+          Vector3d v = intersection_point - position_;
+          double d_squared = v.dot(v);
+          if (d_squared <= radius_ * radius_) {
+            ray->nearest_intersection = t;
+            return true;
+          }
+        } else {
+          ray->nearest_intersection = t;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  Vector3d CalculateLight(
+      Ray ray, std::vector<Light> lights,
+      std::vector<std::shared_ptr<Object>> objects) override {
+    Vector3d intersect =
+        ray.position_ + ray.direction_ * ray.nearest_intersection;
+
+    Vector3d color = Vector3d(0, 0, 0);
+    for (uint32_t i = 0; i < lights.size(); i++) {
+      Vector3d light_source = (intersect - lights[i].position_).normalized();
+      double intensity = normal_face_.dot(light_source);
+      intensity = std::max(intensity, 0.0);
+
+      Ray shadow_ray = Ray(intersect - light_source.normalized(),
+                           Vector3d(0, 0, 0) - light_source);
+      bool should_be_lit = true;
+      for (uint32_t j = 0; j < objects.size(); j++) {
+        if (objects[j]->CheckIntersection(&shadow_ray)) {
+          should_be_lit = false;
+        }
+      }
+
+      color += lights[i].color_ * intensity * should_be_lit;
+    }
+
+    return color;
+  }
+
+  Vector3d position_, normal_face_;
+  bool disk_;
+  double radius_;
 };
 
 class Sphere : public Object {
@@ -39,7 +129,6 @@ class Sphere : public Object {
       : position_(position), radius_(radius) {}
 
   bool CheckIntersection(Ray* ray) override {
-    std::cout << "HELLO??" << std::endl;
     Vector3d hypotenuse = position_ - ray->position_;
 
     double line_to_point = hypotenuse.dot(ray->direction_);
@@ -63,18 +152,31 @@ class Sphere : public Object {
     return false;
   }
 
-  Vec3b CalculateLight(Ray ray, std::vector<Light> lights) override {
+  Vector3d CalculateLight(
+      Ray ray, std::vector<Light> lights,
+      std::vector<std::shared_ptr<Object>> objects) override {
     Vector3d intersect =
         ray.position_ + ray.direction_ * ray.nearest_intersection;
 
     Vector3d normal = (intersect - position_).normalized();
 
-    Vec3b color = Vec3b(0, 0, 0);
+    Vector3d color = Vector3d(0, 0, 0);
     for (uint32_t i = 0; i < lights.size(); i++) {
-      Vector3d light_source = (lights[i].position_ - position_).normalized();
+      Vector3d light_source = (lights[i].position_ - intersect).normalized();
       double intensity = normal.dot(light_source);
       intensity = std::max(intensity, 0.0);
-      color += intensity * lights[i].color_;
+
+      Ray shadow_ray = Ray(intersect - light_source.normalized(),
+                           Vector3d(0, 0, 0) + light_source);
+      bool should_be_lit = true;
+
+      for (uint32_t j = 0; j < objects.size(); j++) {
+        if (objects[j]->CheckIntersection(&shadow_ray)) {
+          should_be_lit = false;
+        }
+      }
+
+      color += lights[i].color_ * intensity * should_be_lit;
     }
 
     return color;
@@ -86,27 +188,34 @@ class Sphere : public Object {
 };
 
 int main() {
-  Mat image(1000, 1000, CV_8UC3, Scalar(255, 255, 255));
+  uint32_t width = 1000;
+  uint32_t height = 1000;
+
+  std::ofstream image("image.ppm");
+  image << "P3\n" << width << " " << height << " "
+        << "255\n";
 
   double camera_distance = 1000;
-  Vector3d camera_pos = Vector3d(0.5 * double(image.cols),
-                                 0.5 * double(image.rows), -camera_distance);
-  std::cout << __cplusplus << std::endl;
+  Vector3d camera_pos =
+      Vector3d(0.5 * double(width), 0.5 * double(height), -camera_distance);
 
-  std::vector<std::unique_ptr<Object>> objects;
+  std::vector<std::shared_ptr<Object>> objects;
 
   objects.push_back(
-      std::make_unique<Sphere>(Sphere(Vector3d(100, 100, 100), 100)));
+      std::make_shared<Sphere>(Sphere(Vector3d(170, 700, 200), 50)));
   objects.push_back(
-      std::make_unique<Sphere>(Sphere(Vector3d(200, 200, 1000), 100)));
+      std::make_shared<Sphere>(Sphere(Vector3d(500, 500, 500), 200)));
+  objects.push_back(std::make_shared<Plane>(Plane(
+      Vector3d(700, 700, 400), Vector3d(0, 1, 1).normalized(), false, 50)));
 
   std::vector<Light> lights;
-  lights.push_back(Light(Vector3d(0, 0, 0), Vec3b(255, 0, 0)));
-  lights.push_back(Light(Vector3d(1000, 1000, 0), Vec3b(0, 255, 0)));
+  lights.push_back(Light(Vector3d(0, 0, 0), Vector3d(255, 0, 0)));
+  lights.push_back(Light(Vector3d(0, 500, 0), Vector3d(0, 255, 0)));
+  lights.push_back(Light(Vector3d(0, 1000, 0), Vector3d(0, 0, 255)));
 
-  for (int x = 0; x < image.cols; x++) {
-    for (int y = 0; y < image.rows; y++) {
-      Vec3b pixel_color = Vec3b(0, 0, 0);
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+      Vector3d pixel_color = Vector3d(0, 0, 0);
 
       Vector3d screen_pos = Vector3d(x, y, 0);
       Vector3d direction = (screen_pos - camera_pos).normalized();
@@ -114,13 +223,12 @@ int main() {
 
       for (uint32_t i = 0; i < objects.size(); i++) {
         if (objects[i]->CheckIntersection(&ray)) {
-          pixel_color = objects[i]->CalculateLight(ray, lights);
+          pixel_color = objects[i]->CalculateLight(ray, lights, objects);
         }
       }
 
-      image.at<Vec3b>(y, x) = pixel_color;
+      image << int(pixel_color.x) << " " << int(pixel_color.y) << " "
+            << int(pixel_color.z) << "\n";
     }
   }
-  imshow("post_image", image);
-  waitKey();
 }
