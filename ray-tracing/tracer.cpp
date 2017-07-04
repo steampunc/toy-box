@@ -5,6 +5,7 @@
 #include <memory>
 #include <cstdint>
 #include <vector>
+#include <random>
 
 struct Vector3d {
   double x, y, z;
@@ -112,6 +113,13 @@ class Plane : public Object {
         }
       }
 
+      double k_noise = 0;
+      double a = (drand48() - 0.5) / 0.5 * k_noise;
+      double b = (drand48() - 0.5) / 0.5 * k_noise;
+      double c = (drand48() - 0.5) / 0.5 * k_noise;
+
+      lights[i].color_ = Vector3d(lights[i].color_.x + a, lights[i].color_.y + b, lights[i].color_.z + c);
+
       color += lights[i].color_ * intensity * should_be_lit;
     }
 
@@ -175,6 +183,13 @@ class Sphere : public Object {
           should_be_lit = false;
         }
       }
+      double k_noise = 500;
+      double a = (drand48() - 0.5) / 0.5 * k_noise;
+      double b = (drand48() - 0.5) / 0.5 * k_noise;
+      double c = (drand48() - 0.5) / 0.5 * k_noise;
+
+      lights[i].color_ = Vector3d(lights[i].color_.x + a, lights[i].color_.y + b, lights[i].color_.z + c);
+
 
       color += lights[i].color_ * intensity * should_be_lit;
     }
@@ -218,7 +233,9 @@ int main() {
       Vector3d pixel_color = Vector3d(0, 0, 0);
 
       Vector3d screen_pos = Vector3d(x, y, 0);
-      Vector3d direction = (screen_pos - camera_pos).normalized();
+
+      double k_noise = 10;
+      Vector3d direction = (screen_pos - camera_pos + Vector3d(((drand48() - 0.5)/ 0.5) * k_noise, ((drand48() - 0.5)/ 0.5) * k_noise, ((drand48() - 0.5)/ 0.5) * k_noise)).normalized() ;
       Ray ray = Ray(camera_pos, direction);
 
       for (uint32_t i = 0; i < objects.size(); i++) {
@@ -227,8 +244,8 @@ int main() {
         }
       }
 
-      image << int(pixel_color.x) << " " << int(pixel_color.y) << " "
-            << int(pixel_color.z) << "\n";
+      image << int(int(pixel_color.x) > 255 ? 255 : (int(pixel_color.x) < 0 ? 0 : int(pixel_color.x))) << " " << int(int(pixel_color.y) > 255 ? 255 : (int(pixel_color.y) < 0 ? 0 : int(pixel_color.y))) << " "
+            << int(int(pixel_color.z) > 255 ? 255 : (int(pixel_color.z) < 0 ? 0 : int(pixel_color.z))) << "\n";
     }
   }
 }
