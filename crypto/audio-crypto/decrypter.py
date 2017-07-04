@@ -22,3 +22,6 @@ for counter, frame in enumerate(data):
   except:
     pass
 print(message)
+
+with open("decrypted_file.txt", 'w') as out_file:
+  out_file.write(message)

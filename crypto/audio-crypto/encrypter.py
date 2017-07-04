@@ -35,5 +35,5 @@ for counter, frame in enumerate(data):
   value = rand_num + data_val
   data[counter] = (value, value) 
 
-sf.write("test.wav", data, 44100)
+sf.write("encrypted_file.wav", data, 44100)
 
