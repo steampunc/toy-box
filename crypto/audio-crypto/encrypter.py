@@ -1,32 +1,39 @@
 import soundfile as sf
 import numpy as np
+import random
 
-raw_data = raw_input("Enter Data to be Encrypted: ")
+raw_data = ''
+while True:
+  user_input = raw_input("Enter f for file or t for raw text: ")
+  if user_input.lower() == "f":
+    with open(raw_input("Enter filename: "), 'r') as data_file:
+      raw_data = data_file.read()
+      break
+  elif user_input.lower() == "t":
+    raw_data = raw_input("Enter text: ")
+    break
+  else:
+    print("Sorry, it looks like you didn't enter f or t. Please try again.")
+
 seed = raw_input("Enter Seed: ")
 
-# This is bad because it reduces entropy. If I ever make this a serious endeavor then I've got a _lot_ to fix.
-seed = int(''.join(str(ord(char) % 10) for char in seed)[-9:])
-print(seed)
+seed = int(''.join(str(ord(char) % 10) for char in seed))
 
-length = max(len(raw_data), abs(np.random.randn()) * 100000)
-print(length)
+length = max(len(raw_data), random.random() * 100000)
 
-np.random.seed(seed)
+random.seed(seed)
 
 data = np.zeros((int(length), 2))
 
 for counter, frame in enumerate(data):
   data_val = 0
   try:
-    data_val = float(ord(raw_data[counter])) / 254.0
+    data_val = float(ord(raw_data[counter]) ^ ord(str(seed)[counter % len(str(seed))])) / (254.0 * 4) 
   except:
     pass
-  rand_num = np.random.randn() * 0.25
+  rand_num = (random.uniform(-1, 1)) * 0.25
   value = rand_num + data_val
   data[counter] = (value, value) 
-  if counter < 20:
-    print(rand_num)
-print(data)
 
 sf.write("test.wav", data, 44100)
 
