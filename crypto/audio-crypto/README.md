@@ -5,12 +5,15 @@ It uses xor, so the encryption itself isn't that secure, but I'm relying on the 
 Installation:
 Open a terminal,
 Navigate to the location of `install.sh`
+
 `cd /path/to/install.sh`
 
 Modify permissions of `install.sh`
+
 `chmod 777 install.sh`
 
 Run `install.sh`
+
 `sudo bash ./install.sh`
 
 Type in your password, and it should install everything that's neccesary.
@@ -18,15 +21,18 @@ Type in your password, and it should install everything that's neccesary.
 Usage:
 Open a terminal
 Navigate to the folder location
+
 `cd /path/to/encrypter.py`
 
 Run `encrypter.py` with python.
+
 `python encrypter.py`
 
 Follow the instructions in the prompt for if you're encrypting a file or encrypting a simple message, then feed it the seed that you have decided on. It will save the message to a .wav file, then you can send that .wav file to the person you're communicating with.
 
 To Decrypt:
 From the location of `decrypter.py` in the terminal,
+
 `python decrypter.py`
 
 Follow the instructions in the prompt, giving it the name of the .wav file you're going to decrypt, then feed it the seed and it will decrypt it and print it out and save the decrypt to a file.
