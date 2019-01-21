@@ -53,6 +53,8 @@ for comparison in comparison_list:
         complement_graph.add_edge(compared[0], compared[1])
 
 
+# I am certain there is a better way to do this, but I just bodged together a solution to re-iterate over the unanswere values. Sorry to anyone reading the code!
+        
 len_compared = len_compared + len(complement_graph.edges())
 for edge in complement_graph.edges():
     num_compared = num_compared + 1

@@ -1,3 +1,6 @@
+# See the context for this code at https://steampunc.github.io//post/2018/01/07/chladni.html
+# Generates approximations of Chladni patterns using some fun math
+
 import math
 import statistics as stat
 import numpy as np
