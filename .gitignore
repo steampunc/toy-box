@@ -2,3 +2,6 @@
 **/__pycache*
 drivetrain_modelling/logs/*
 **/*.pyc
+**/*.ppm
+value-plotter/*_values.txt
+**/*.out
