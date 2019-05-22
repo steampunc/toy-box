@@ -5,3 +5,4 @@ drivetrain_modelling/logs/*
 **/*.ppm
 value-plotter/*_values.txt
 **/*.out
+**/target/**
