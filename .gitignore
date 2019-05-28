@@ -6,3 +6,4 @@ drivetrain_modelling/logs/*
 value-plotter/*_values.txt
 **/*.out
 **/target/**
+**/*.mp3
