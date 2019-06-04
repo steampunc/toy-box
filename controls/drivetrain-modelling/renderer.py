@@ -66,6 +66,7 @@ with open("logs/model_status.csv", 'r') as logfile_reader:
     # 7 8 9 10 position, velocity, angle, angular velocity
     for row in data:
         window.fill((255, 255, 255))
+        print(row)
         drivetrain.Update(window, row[7], row[9])
         pygame.display.flip()
         time.sleep(0.0001)

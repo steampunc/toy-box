@@ -5,9 +5,9 @@ class DrivetrainGoals(object):
     pass
 
 class UnprofiledController(object):
-    pkP = 0.0
+    pkP = 1.0
     pkI = 0.0
-    pkD = 0.0
+    pkD = 1.0
     
     akP = 0.0
     akI = 0.0
