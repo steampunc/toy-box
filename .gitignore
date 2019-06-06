@@ -1,6 +1,6 @@
 **/bazel-*
 **/__pycache*
-drivetrain_modelling/logs/*
+**/logs/*
 **/*.pyc
 **/*.ppm
 value-plotter/*_values.txt
