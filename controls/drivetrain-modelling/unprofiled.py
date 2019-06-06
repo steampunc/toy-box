@@ -1,4 +1,5 @@
 import math
+import os
 import model as dt_model
 
 class DrivetrainGoals(object):
@@ -40,7 +41,11 @@ class UnprofiledController(object):
         self.goal.angle = goal.angle
         self.goal.angular_velocity = goal.angular_velocity
 
-time = 10
+
+os.remove("logs/controller_status.csv")
+os.remove("logs/model_status.csv")
+os.remove("logs/unprofiled_controller_status.csv")
+time = 20
 
 model = dt_model.DrivetrainModel()
 controller = UnprofiledController(200, 0, 180, 10, 0, 15)
@@ -55,9 +60,31 @@ controller.SetGoal(goal)
 with open("logs/controller_status.csv", "a") as logfile:
     logfile.write("Left Voltage, Right Voltage, Goal Position, Goal Velocity, Goal Angle, Goal Angular Velocity\n")
 
+
 for i in range(0, int(time / dt_model.constants.dt)):
     status = model.get_status()
     left_voltage, right_voltage = controller.Update(status)
+    if i == 1000:
+        goal.position = 0.25
+        goal.velocity = 0.0
+        goal.angle = -math.pi / 2
+        goal.angular_velocity = 0.0
+        controller.SetGoal(goal)
+
+    if i == 2000:
+        goal.position = 1.5
+        goal.velocity = 0.0
+        goal.angle = 0
+        goal.angular_velocity = 0.0
+        controller.SetGoal(goal)
+
+    if i == 3000:
+        goal.position = -1
+        goal.velocity = 0.0
+        goal.angle = math.pi/2
+        goal.angular_velocity = 0.0
+        controller.SetGoal(goal)
+
 
     model.Update(left_voltage, right_voltage)
 
