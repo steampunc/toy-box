@@ -61,22 +61,35 @@ pygame.font.init()
 window.fill((255, 255, 255))
 block = Block((500, 300), 100, 100, 0.52359877559)
 
-# PID Constants
-kP = -40
-kD = -10
-kI = -11
-
-goal = 800
 
 timer = 0
 
 integral = 0
 
-while timer < 10:
+while timer < 20:
     window.fill((255, 255, 255))
     timer += block.dt
-    controller_input = (block.center[0] - goal) * kP + block.velocity * kD + integral * kI
-    integral += (block.center[0] - goal) * block.dt
+
+    # Stuff we care about
+
+    # PID Constants
+    kP = 0 #-40
+    kD = 0 #-10
+    kI = 0 #-11
+
+    goal = 800
+
+
+
+
+    error = goal - block.center[0]
+    integral += error * 0.005
+    controller_input = error * 10 - 10 * block.velocity + 10 * integral
+    
+    
+    
+    
+    
     block.Update(window, controller_input)
     pygame.display.flip()
     time.sleep(0.001)

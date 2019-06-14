@@ -37,17 +37,31 @@ pygame.font.init()
 window.fill((255, 255, 255))
 block = Block((500, 300), 100, 100)
 
-# PID Constants
-kP = 0
-
-goal = 800
-
 timer = 0
 
 while timer < 10:
     window.fill((255, 255, 255))
     timer += block.dt
-    controller_input = (block.center[0] - goal) * kP
+
+    # Stuff we care about:
+
+    # P constant
+    kP = 0
+
+
+
+    goal = 800
+
+
+
+    block.center[0]
+
+    controller_input = 10 *(goal -  block.center[0])
+
+    
+    
+
+
     block.Update(window, controller_input)
     pygame.display.flip()
     time.sleep(0.001)
