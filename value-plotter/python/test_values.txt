@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf version="1.2" xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/2001/XMLSchema-instance">
+  <graph defaultedgetype="directed" mode="static" name="">
+    <meta>
+      <creator>NetworkX 2.2</creator>
+      <lastmodified>21/12/2018</lastmodified>
+    </meta>
+    <nodes>
+      <node id="Authenticity" label="Authenticity" />
+      <node id="Adventure" label="Adventure" />
+      <node id="Balance" label="Balance" />
+      <node id="Compassion" label="Compassion" />
+      <node id="Justice" label="Justice" />
+      <node id="Knowledge" label="Knowledge" />
+      <node id="Love" label="Love" />
+      <node id="Meaning" label="Meaning" />
+      <node id="Optimism" label="Optimism" />
+      <node id="Wisdom" label="Wisdom" />
+    </nodes>
+    <edges>
+      <edge id="0" source="Authenticity" target="Adventure" />
+      <edge id="1" source="Authenticity" target="Wisdom" />
+      <edge id="2" source="Authenticity" target="Balance" />
+      <edge id="3" source="Authenticity" target="Optimism" />
+      <edge id="4" source="Adventure" target="Love" />
+      <edge id="5" source="Adventure" target="Wisdom" />
+      <edge id="6" source="Adventure" target="Optimism" />
+      <edge id="7" source="Balance" target="Adventure" />
+      <edge id="8" source="Balance" target="Optimism" />
+      <edge id="9" source="Compassion" target="Meaning" />
+      <edge id="10" source="Compassion" target="Balance" />
+      <edge id="11" source="Compassion" target="Authenticity" />
+      <edge id="12" source="Compassion" target="Adventure" />
+      <edge id="13" source="Compassion" target="Love" />
+      <edge id="14" source="Justice" target="Compassion" />
+      <edge id="15" source="Justice" target="Meaning" />
+      <edge id="16" source="Justice" target="Adventure" />
+      <edge id="17" source="Justice" target="Authenticity" />
+      <edge id="18" source="Justice" target="Balance" />
+      <edge id="19" source="Justice" target="Knowledge" />
+      <edge id="20" source="Knowledge" target="Authenticity" />
+      <edge id="21" source="Knowledge" target="Balance" />
+      <edge id="22" source="Knowledge" target="Optimism" />
+      <edge id="23" source="Knowledge" target="Compassion" />
+      <edge id="24" source="Knowledge" target="Adventure" />
+      <edge id="25" source="Love" target="Knowledge" />
+      <edge id="26" source="Love" target="Meaning" />
+      <edge id="27" source="Love" target="Balance" />
+      <edge id="28" source="Love" target="Justice" />
+      <edge id="29" source="Love" target="Authenticity" />
+      <edge id="30" source="Meaning" target="Authenticity" />
+      <edge id="31" source="Meaning" target="Balance" />
+      <edge id="32" source="Meaning" target="Adventure" />
+      <edge id="33" source="Meaning" target="Knowledge" />
+      <edge id="34" source="Meaning" target="Wisdom" />
+      <edge id="35" source="Optimism" target="Compassion" />
+      <edge id="36" source="Optimism" target="Love" />
+      <edge id="37" source="Optimism" target="Justice" />
+      <edge id="38" source="Optimism" target="Meaning" />
+      <edge id="39" source="Wisdom" target="Balance" />
+      <edge id="40" source="Wisdom" target="Knowledge" />
+      <edge id="41" source="Wisdom" target="Justice" />
+      <edge id="42" source="Wisdom" target="Optimism" />
+      <edge id="43" source="Wisdom" target="Love" />
+      <edge id="44" source="Wisdom" target="Compassion" />
+    </edges>
+  </graph>
+</gexf>
