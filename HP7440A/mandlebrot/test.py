@@ -39,8 +39,8 @@ def betaF(n,m):
 
 def main():
     #compute coefficients (reduce ncoeffs to make it faster)
-    for j in range (0, 3):
-        for i in range (1, 10):
+    for j in range (2, 3):
+        for i in range (8, 10):
             ncoeffs = i * 10 ** j;
             coeffs = np.zeros( (ncoeffs) )
             for m in range(ncoeffs):
