@@ -1,8 +1,8 @@
 #include <Stepper.h>
 
 // initialize the stepper library on pins 8 through 11:
-Stepper LStepper(200, 8,9,10,11);            
-Stepper RStepper(200, 38,36,34,32);            
+Stepper LStepper(200, 4,5,6,7);            
+Stepper RStepper(200, 42,44,46,48);            
 
 double board_width = 1.03;
 double steps_per_m = 200 / 0.145;
@@ -11,6 +11,7 @@ void setup() {
   LStepper.setSpeed(50);
   RStepper.setSpeed(50);  // initialize the serial port:
   Serial.begin(9600);
+
 }
 
 
@@ -52,27 +53,7 @@ void move(int dl, int dr) {
       }
     }
   }
-  
-  /*
-  int prev_int = -1;
-  if (l2r_ratio >= 1) {
-    for (int i = 0; i <= abs(dl); i++) {
-      LStepper.step(int(dl/abs(dl)));
-      Serial.println("Moving L motor more than R");
-      if (abs(int(i / l2r_ratio)) - prev_int != 0) {
-        RStepper.step(int(dr/abs(dr)));
-        prev_int = abs(int(i/l2r_ratio));
-      }
-    }
-  } else { /*
-    for (int i = 0; i <= abs(dr); i++) {
-      RStepper.step(int(dr/abs(dr)));
-      Serial.println("Moving R motor more than L");
-      if (abs(int(i * l2r_ratio)) - prev_int != 0) {
-        LStepper.step(int(dl/abs(dl)));
-        prev_int = abs(int(i * l2r_ratio));
-      }
-    }    */
+  Serial.write("A");
 }
 
 const byte numChars = 32;

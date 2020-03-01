@@ -2,12 +2,11 @@ import serial
 import struct
 import math
 from canvas_objects import *
-from time import sleep
 
 
 # initial starting point is at .84m for both
 
-board_width = 0.94
+board_width = 0.95
 pulley_circumference = 0.145
 clicks_per_m = 200 / pulley_circumference
 ser = serial.Serial('/dev/ttyACM0', 9600)
@@ -32,14 +31,12 @@ class Drawer:
         return (x, y)
 
     def send_to_arduino(self, dlr, dll, i):
-        message = str(int(-dlr * clicks_per_m)) + "," + str(int(-dll * clicks_per_m)) + "\n"
+        message = str(int(-dlr * clicks_per_m)) + "," + str(int(dll * clicks_per_m)) + "\n"
         print(message)
         ser.write(message.encode())
-        self.dl_net += abs(dlr) + abs(dll)
-        if (i % 7 ==6 or self.dl_net >= 400 / clicks_per_m):
-            sleep(1.5)
-            self.dl_net = 0
-            print("Paused to let serial buffer empty")
+        print("hi")
+        not_done = True
+        print(ser.read())
 
     def move(self, x, y):
         print("Moving to " + str(x) + ", " + str(y))
@@ -63,7 +60,6 @@ class Drawer:
         (self.len_r, self.len_l) = self.to_radial(x_, y_) 
 
         print("DONE, moved R to " + str(self.len_r) + " and L to " + str(self.len_l) + ", cartesian eq is " + str((x_, y_)))
-        sleep(1)
 
     def draw_arc(self, center_x, center_y, x_i, y_i, delta_angle):
         print("Drawing arc with center at " + str((center_x, center_y)) + ", angle of " + str(delta_angle))
@@ -92,12 +88,9 @@ class Drawer:
         print("DONE, drew arc with radius " + str(r))
 
 
-
-
-board = Drawer(0.01, 0.9325)
-
-board.draw_arc(0.3, 0.5, 0.3, 0.4, -1 * math.pi * 3/4)
-board.move(0.4,0.7)
-board.move(0.5525, 0.5851)
-board.draw_arc(0.5,0.5, 0.5525, 0.5851, -1 * math.pi * 5/4)
-board.draw_arc(0.3, 0.5, 0.4, 0.5, -1 * math.pi / 2)
+board = Drawer(0.01, 0.9425)
+board.move(0.3,0.3)
+board.move(0.3,0.4)
+board.move(0.4,0.4)
+board.move(0.4,0.3)
+board.move(0.3,0.3)
