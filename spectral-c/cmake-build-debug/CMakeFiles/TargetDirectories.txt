@@ -1,0 +1,3 @@
+/home/finn/code/toy-box/spectral-c/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/finn/code/toy-box/spectral-c/cmake-build-debug/CMakeFiles/spectral_c.dir
+/home/finn/code/toy-box/spectral-c/cmake-build-debug/CMakeFiles/edit_cache.dir
