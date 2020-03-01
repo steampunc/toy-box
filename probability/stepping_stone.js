@@ -1,6 +1,6 @@
 
-const height = 50
-const width = 50
+const height = 10
+const width = 10
 
 function randint(min, max) {
 	min = Math.ceil(min);
