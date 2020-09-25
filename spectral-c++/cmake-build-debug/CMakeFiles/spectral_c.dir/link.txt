@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/spectral_c.dir/main.cpp.o CMakeFiles/spectral_c.dir/utils.cpp.o  -o spectral_c -lfftw3 

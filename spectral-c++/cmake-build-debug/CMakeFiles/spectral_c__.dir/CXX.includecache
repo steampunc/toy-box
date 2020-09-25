@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/finn/code/toy-box/spectral-c++/main.cpp
+array
+-
+fftw3.h
+-
+fstream
+-
+iostream
+-
+math.h
+-
+stdio.h
+-
+
