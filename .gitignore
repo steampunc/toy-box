@@ -1,4 +1,5 @@
 **/bazel-*
+**/.idea/**
 **/__pycache*
 **/logs/*
 **/*.pyc
